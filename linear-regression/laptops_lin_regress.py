@@ -19,7 +19,7 @@ import pickle
 
 
 # load dataset
-laptops = pd.read_csv("/Users/reyhanarslan/ML_Projects/prediction/laptops.csv"
+laptops = pd.read_csv("...../laptops.csv"
                       , encoding="latin-1")
 laptops = laptops.drop("Unnamed: 0", axis='columns')
 to_predict = "Price_euros"
