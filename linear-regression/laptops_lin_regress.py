@@ -6,8 +6,6 @@ Prediction of Laptop Prices with Linear Regression from scikit-learn.
 Source: https://www.kaggle.com/ionaskel/laptop-prices
 """
 
-
-
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
@@ -16,12 +14,12 @@ from sklearn import linear_model
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import seaborn as sns
-
+import pickle
 
 
 
 # load dataset
-laptops = pd.read_csv("........../laptops.csv"
+laptops = pd.read_csv("/Users/reyhanarslan/ML_Projects/prediction/laptops.csv"
                       , encoding="latin-1")
 laptops = laptops.drop("Unnamed: 0", axis='columns')
 to_predict = "Price_euros"
@@ -40,19 +38,35 @@ cenc = OrdinalEncoder()
 cenc.fit(X)
 X = cenc.transform(X)
 
-# splitting data into train and test dataset
-x_train, x_test, y_train, y_test = train_test_split(X, y, test_size = 0.1)
+# shuffle, split and train data 25 times, to get best model
+# and save best model as: laptop-price-model.pickle, to load for (maybe) later purposes
+best_r2 = 0
+for _ in range(25):
+    # splitting data into train and test dataset
+    x_train, x_test, y_train, y_test = train_test_split(X, y, test_size = 0.1)
+    
+    # linear regression:
+    model_linear = linear_model.LinearRegression()
+    model_linear.fit(x_train, y_train)
+    r2_val = model_linear.score(x_test, y_test)
+    
+    print('The ', _, '. ', 'iteration:', sep='')
+    # The R^2-Value varies between 0.31 and 0.56 depending how the training
+    #   and test data was shuffled and split
+    print('Accuracy (R^2-Value) Train: \n', model_linear.score(x_train, y_train))
+    print('Accuracy Test (R^2-Value): \n', model_linear.score(x_test, y_test))
+    print('Coefficient: \n', model_linear.coef_)
+    print('Intercept: \n', model_linear.intercept_)
+    print('\n\n')
+    
+    if r2_val > best_r2:
+        best_r2 = r2_val
+        with open("laptop-price-model.pickle", "wb") as lin_file:
+            pickle.dump(model_linear, lin_file)
 
-# linear regression:
-linear = linear_model.LinearRegression()
-linear.fit(x_train, y_train)
-
-# The R^2-Value varies between 0.45 and 0.55 depending how the training
-#   and test data was shuffled and split
-print('Accuracy (R^2-Value) Train: \n', linear.score(x_train, y_train))
-print('Accuracy Test (R^2-Value): \n', linear.score(x_test, y_test))
-print('Coefficient: \n', linear.coef_)
-print('Intercept: \n', linear.intercept_)
+# LOAD MODEL
+pickle_file = open("laptop-price-model.pickle", "rb")
+model_linear = pickle.load(pickle_file)
 
 
 # preparation to plotting of the results:
@@ -72,7 +86,7 @@ plt.title("Laptop Prices")
 plt.show()
 
 # plot X with the calculated y of the LinearRegression-Model
-y_reg_line = X.dot(linear.coef_)+linear.intercept_
+y_reg_line = X.dot(model_linear.coef_) + model_linear.intercept_
 sns.set(rc={'figure.figsize':(15,11)})
 reg_plot = sns.regplot(x_features, y_reg_line, scatter_kws={'s': 1.5, 'alpha': 1}, line_kws={'lw': 2, 'color': 'red'})
 reg_plot.set(ylim=(0,6000))
